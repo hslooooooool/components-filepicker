@@ -1,0 +1,3 @@
+rootProject.name='components-filepicker'
+include ':app'
+include ':lib'
