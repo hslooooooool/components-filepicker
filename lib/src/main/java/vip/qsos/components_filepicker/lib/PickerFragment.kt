@@ -1,7 +1,6 @@
 package vip.qsos.components_filepicker.lib
 
 import android.Manifest
-import android.annotation.TargetApi
 import android.app.Activity.RESULT_OK
 import android.content.ComponentName
 import android.content.ContentValues
@@ -11,11 +10,11 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
 import android.provider.MediaStore
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import io.reactivex.rxjava3.core.Observable
-import io.reactivex.rxjava3.subjects.PublishSubject
+import androidx.fragment.app.FragmentManager
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
@@ -23,167 +22,68 @@ import kotlin.collections.ArrayList
 /**媒体文件获取，提供系统的相机拍照、录制，系统的录音，系统的文件选取等功能的实现
  * @author : 华清松
  */
-class PickerFragment : Fragment() {
+class PickerFragment(private val fm: FragmentManager) : Fragment() {
 
     companion object {
-
         const val TAG = "PickerFragment"
-
-        /**拍照存储URI*/
-        private var temFileUri: Uri? = null
-
     }
 
-    /**观察是否绑定Activity*/
-    private lateinit var attachedSubject: PublishSubject<Boolean>
+    /**拍摄存储 URI*/
+    private var cameraFileUri: Uri? = null
 
-    /**选择单张*/
-    private lateinit var publishSubject: PublishSubject<Uri>
+    /**默认限制录制时长为 20 秒*/
+    private var pickerLimitTime: Int = 20
 
-    /**选择多张*/
-    private lateinit var publishMultipleSubject: PublishSubject<List<Uri>>
+    @FilePicker.Type
+    private var pickerType: Int = FilePicker.CHOOSER
 
-    /**选择取消*/
-    private lateinit var canceledSubject: PublishSubject<Int>
+    @FilePicker.FileType
+    private var pickerFileType: Int = FilePicker.FILE
+    private var pickerMimeTypes: Array<String> = arrayOf("*/*")
+    private var pickerSize: Int = 1
 
-    /**是否为多选*/
-    private var isMultiple = false
-
-    /**选择方式*/
-    private var mTakeType: Int = PickerSource.ONE
-
-    /**选择文件种类
-     * 0 图片 1 视频 2 音频 3 文件
-     * */
-    private var mFileType: Int = 0
-
-    /**选择界面标题 Sources.CHOOSER 时生效*/
-    private var mChooserTitle: String? = "选择"
-
-    /**默认限制录制时长为10秒*/
-    private var mLimitTime: Int = 10000
-
-    /**默认限制文件类型*/
-    private var mMimeTypes: Array<String> = arrayOf("*/*")
-    private var mMimeType: String = if (mMimeTypes.isEmpty()) "*/*" else mMimeTypes[0]
+    /**选择界面标题。pickerType == CHOOSER 时生效*/
+    private var pickerTitle: String = "文件选择"
 
     private var result: ((PickResult) -> Unit)? = null
-    private var failed: ((String) -> Unit)? = null
+    private var failed: ((Boolean, String) -> Unit)? = null
 
-    override fun onDestroy() {
-        this.result = null
-        this.failed = null
-        super.onDestroy()
-    }
+    /**是否为多选*/
+    private val pickerMultiple
+        get() = pickerSize > 1
 
-    fun start(result: (PickResult) -> Unit): PickerFragment {
-        this.result = result
-        return this
-    }
-
-    fun onFailed(failed: (String) -> Unit): PickerFragment {
-        this.failed = failed
-        return this
-    }
-
-    /**图片选择*/
-    fun takeImage(
-        @PickerSource.Type type: Int = PickerSource.CHOOSER,
-        chooserTitle: String = "图片选择"
-    ): Observable<Uri> {
-        initSubjects()
-        this.mFileType = 0
-        this.isMultiple = false
-        this.mTakeType = type
-        this.mMimeTypes = arrayOf("image/*")
-        this.mChooserTitle = chooserTitle
-        requestPick()
-        return publishSubject.takeUntil(canceledSubject)
-    }
-
-    /**视频选择*/
-    fun takeVideo(
-        @PickerSource.Type type: Int = PickerSource.CHOOSER,
-        limitTime: Int = 10000,
-        chooserTitle: String = "视频选择"
-    ): Observable<Uri> {
-        initSubjects()
-        this.mFileType = 1
-        this.isMultiple = false
-        this.mTakeType = type
-        this.mMimeTypes = arrayOf("video/*")
-        this.mLimitTime = limitTime
-        this.mChooserTitle = chooserTitle
-        requestPick()
-        return publishSubject.takeUntil(canceledSubject)
-    }
-
-    /**音频选择*/
-    fun takeAudio(
-        @PickerSource.Type type: Int = PickerSource.CHOOSER,
-        limitTime: Int = 10000,
-        chooserTitle: String = "音频选择"
-    ): Observable<Uri> {
-        initSubjects()
-        this.mFileType = 2
-        this.isMultiple = false
-        this.mTakeType = type
-        this.mMimeTypes = arrayOf("audio/*")
-        this.mLimitTime = limitTime
-        this.mChooserTitle = chooserTitle
-        requestPick()
-        return publishSubject.takeUntil(canceledSubject)
-    }
-
-    /**文件选择*/
-    fun takeFile(mimeType: String = "*/*", chooserTitle: String = "文件选择"): Observable<Uri> {
-        initSubjects()
-        this.mFileType = 3
-        this.isMultiple = false
-        this.mTakeType = PickerSource.ONE
-        this.mMimeTypes = arrayOf(mimeType)
-        this.mChooserTitle = chooserTitle
-        requestPick()
-        return publishSubject.takeUntil(canceledSubject)
-    }
-
-    /**文件多选，KITKAT 以上可用*/
-    @TargetApi(Build.VERSION_CODES.KITKAT)
-    fun takeFiles(
-        mimeType: Array<String> = arrayOf("*/*"),
-        multiple: Boolean = true
-    ): Observable<List<Uri>> {
-        initSubjects()
-        this.isMultiple = multiple
-        this.mTakeType = PickerSource.MULTI
-        this.mMimeTypes = mimeType
-        requestPick()
-        return publishMultipleSubject.takeUntil(canceledSubject)
-    }
+    /**可选择文件类型*/
+    private val pickerMimeType: String
+        get() = if (pickerMimeTypes.isEmpty()) {
+            "*/*"
+        } else {
+            pickerMimeTypes[0]
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // 保留Fragment
-        retainInstance = true
+        this.retainInstance = true
+        this.arguments?.also {
+            this.pickerType = it.getInt("pickerType", pickerType)
+            this.pickerSize = it.getInt("pickerSize", pickerSize)
+            this.pickerFileType = it.getInt("pickerFileType", pickerFileType)
+            this.pickerLimitTime = it.getInt("pickerLimitTime", pickerLimitTime)
+            this.pickerTitle = it.getString("pickerTitle", pickerTitle)
+            this.pickerMimeTypes = it.getStringArray("pickerMimeTypes") ?: pickerMimeTypes
+        }
     }
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        if (::attachedSubject.isInitialized.not() or
-            ::publishSubject.isInitialized.not() or
-            ::publishMultipleSubject.isInitialized.not() or
-            ::canceledSubject.isInitialized.not()
-        ) {
-            initSubjects()
+        Handler().post {
+            if (isAdded) {
+                startPick()
+            }
         }
-        attachedSubject.onNext(true)
-        attachedSubject.onComplete()
     }
 
     override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
+        requestCode: Int, permissions: Array<String>, grantResults: IntArray
     ) {
         if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             startPick()
@@ -194,50 +94,54 @@ class PickerFragment : Fragment() {
         if (resultCode == RESULT_OK) {
             /**选择结果回调*/
             when (requestCode) {
-                PickerSource.DEVICE -> {
-                    temFileUri?.let {
-                        pushImage(it)
-                    } ?: onFailed("照片获取失败")
+                1 -> {
+                    postCamera()
                 }
-                PickerSource.ONE, PickerSource.MULTI -> handleFileResult(data)
-                PickerSource.CHOOSER -> {
+                2 -> {
+                    handleFileResult(data)
+                }
+                3 -> {
                     if (isCamera(data)) {
-                        temFileUri?.let {
-                            pushImage(it)
-                        } ?: onFailed("照片获取失败")
+                        postCamera()
                     } else {
                         handleFileResult(data)
                     }
                 }
             }
         } else {
-            /**取消选择*/
-            canceledSubject.onNext(requestCode)
+            this.failed?.invoke(false, "取消选择")
         }
     }
 
-    /**初始化*/
-    private fun initSubjects() {
-        publishSubject = PublishSubject.create()
-        attachedSubject = PublishSubject.create()
-        canceledSubject = PublishSubject.create()
-        publishMultipleSubject = PublishSubject.create()
+    override fun onDestroy() {
+        this.cameraFileUri = null
+        this.result = null
+        this.failed = null
+        super.onDestroy()
+    }
+
+    /**设置选择结果执行代码*/
+    fun picker(result: (PickResult) -> Unit): PickerFragment {
+        this.result = result
+        return this
+    }
+
+    /**设置选择失败执行代码*/
+    fun onFailed(failed: (Boolean, String) -> Unit): PickerFragment {
+        this.failed = failed
+        return this
+    }
+
+    /**开始选择*/
+    fun commit() {
+        fm.beginTransaction()
+            .add(this, TAG)
+            .commitAllowingStateLoss()
     }
 
     /**是否为相机*/
     private fun isCamera(data: Intent?): Boolean {
         return data == null || data.data == null && data.clipData == null
-    }
-
-    private fun requestPick() {
-        if (!isAdded) {
-            attachedSubject.subscribe {
-                startPick()
-            }.also {
-            }
-        } else {
-            startPick()
-        }
     }
 
     /**图片选取方式判断*/
@@ -246,62 +150,61 @@ class PickerFragment : Fragment() {
         if (!checkPermission()) {
             return
         }
-
+        cameraFileUri = null
         var chooseIntent: Intent? = null
         when {
             /**拍照*/
-            mTakeType == PickerSource.DEVICE && mFileType == 0 -> {
-                temFileUri = createImageUri()
+            pickerType == FilePicker.DEVICE && pickerFileType == FilePicker.IMAGE -> {
+                cameraFileUri = createImageUri()
                 chooseIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).also {
-                    it.putExtra(MediaStore.EXTRA_OUTPUT, temFileUri)
-                    grantWritePermission(context!!, it, temFileUri!!)
+                    it.putExtra(MediaStore.EXTRA_OUTPUT, cameraFileUri)
+                    grantWritePermission(context!!, it, cameraFileUri!!)
                 }
             }
             /**拍照或选择*/
-            mTakeType == PickerSource.CHOOSER && mFileType == 0 -> {
+            pickerType == FilePicker.CHOOSER && pickerFileType == FilePicker.IMAGE -> {
                 chooseIntent = createImageChooserIntent()
             }
 
             /**视频拍摄*/
-            mTakeType == PickerSource.DEVICE && mFileType == 1 -> {
-                temFileUri = createVideoUri()
+            pickerType == FilePicker.DEVICE && pickerFileType == FilePicker.VIDEO -> {
+                cameraFileUri = createVideoUri()
                 chooseIntent = Intent(MediaStore.ACTION_VIDEO_CAPTURE).also {
-                    it.putExtra(MediaStore.EXTRA_DURATION_LIMIT, mLimitTime)
-                    it.putExtra(MediaStore.EXTRA_OUTPUT, temFileUri)
-                    grantWritePermission(context!!, it, temFileUri!!)
+                    it.putExtra(MediaStore.EXTRA_DURATION_LIMIT, pickerLimitTime)
+                    it.putExtra(MediaStore.EXTRA_OUTPUT, cameraFileUri)
+                    grantWritePermission(context!!, it, cameraFileUri!!)
                 }
             }
             /**视频拍摄或选择*/
-            mTakeType == PickerSource.CHOOSER && mFileType == 1 -> {
+            pickerType == FilePicker.CHOOSER && pickerFileType == FilePicker.VIDEO -> {
                 chooseIntent = createVideoChooserIntent()
             }
 
             /**音频录制*/
-            mTakeType == PickerSource.DEVICE && mFileType == 2 -> {
-                temFileUri = createAudioUri()
+            pickerType == FilePicker.DEVICE && pickerFileType == FilePicker.AUDIO -> {
+                cameraFileUri = createAudioUri()
                 chooseIntent = Intent(MediaStore.Audio.Media.RECORD_SOUND_ACTION).also {
-                    it.putExtra(MediaStore.EXTRA_DURATION_LIMIT, mLimitTime)
-                    it.putExtra(MediaStore.EXTRA_OUTPUT, temFileUri)
-                    grantWritePermission(context!!, it, temFileUri!!)
+                    it.putExtra(MediaStore.EXTRA_DURATION_LIMIT, pickerLimitTime)
+                    it.putExtra(MediaStore.EXTRA_OUTPUT, cameraFileUri)
+                    grantWritePermission(context!!, it, cameraFileUri!!)
                 }
             }
             /**音频录制或选择*/
-            mTakeType == PickerSource.CHOOSER && mFileType == 2 -> {
+            pickerType == FilePicker.CHOOSER && pickerFileType == FilePicker.AUDIO -> {
                 chooseIntent = createAudioChooserIntent()
             }
-
-            /**文件单选*/
-            mTakeType == PickerSource.ONE -> {
-                chooseIntent = createPickOne()
-            }
             /**文件多选*/
-            mTakeType == PickerSource.MULTI -> {
+            pickerType == FilePicker.CHOOSE && pickerMultiple -> {
                 chooseIntent = createPickMore()
+            }
+            /**文件单选*/
+            pickerType == FilePicker.CHOOSE && !pickerMultiple -> {
+                chooseIntent = createPickOne()
             }
         }
         activity?.packageManager?.let {
             chooseIntent?.resolveActivity(it)?.let {
-                startActivityForResult(chooseIntent, mTakeType)
+                startActivityForResult(chooseIntent, pickerType)
             }
         }
     }
@@ -310,17 +213,17 @@ class PickerFragment : Fragment() {
     private fun createPickOne(): Intent {
         val pictureChooseIntent =
             Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-        pictureChooseIntent.type = mMimeType
+        pictureChooseIntent.type = pickerMimeType
         return pictureChooseIntent
     }
 
     /**构建文件多选Intent*/
     private fun createPickMore(): Intent {
         val pictureChooseIntent = Intent(Intent.ACTION_OPEN_DOCUMENT)
-        pictureChooseIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, isMultiple)
+        pictureChooseIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, pickerMultiple)
 
         pictureChooseIntent.type = "*/*"
-        pictureChooseIntent.putExtra(Intent.EXTRA_MIME_TYPES, mMimeTypes)
+        pictureChooseIntent.putExtra(Intent.EXTRA_MIME_TYPES, pickerMimeTypes)
         pictureChooseIntent.putExtra(Intent.EXTRA_LOCAL_ONLY, true)
         /**临时授权app访问URI代表的文件所有权*/
         pictureChooseIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
@@ -329,7 +232,7 @@ class PickerFragment : Fragment() {
 
     /**构建图片选择器Intent*/
     private fun createImageChooserIntent(): Intent {
-        temFileUri = createImageUri()
+        cameraFileUri = createImageUri()
         val cameraIntents = ArrayList<Intent>()
         val captureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
         val packageManager = context!!.packageManager
@@ -339,11 +242,11 @@ class PickerFragment : Fragment() {
             val intent = Intent(captureIntent)
             intent.component = ComponentName(res.activityInfo.packageName, res.activityInfo.name)
             intent.setPackage(packageName)
-            intent.putExtra(MediaStore.EXTRA_OUTPUT, temFileUri)
-            grantWritePermission(context!!, intent, temFileUri!!)
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, cameraFileUri)
+            grantWritePermission(context!!, intent, cameraFileUri!!)
             cameraIntents.add(intent)
         }
-        Intent.createChooser(createPickMore(), mChooserTitle).also {
+        Intent.createChooser(createPickMore(), pickerTitle).also {
             it.putExtra(Intent.EXTRA_INITIAL_INTENTS, cameraIntents.toTypedArray())
             return it
         }
@@ -351,11 +254,11 @@ class PickerFragment : Fragment() {
 
     /**构建视频选择器Intent*/
     private fun createVideoChooserIntent(): Intent {
-        temFileUri = createVideoUri()
+        cameraFileUri = createVideoUri()
         val cameraIntents = ArrayList<Intent>()
         val captureIntent = Intent(MediaStore.ACTION_VIDEO_CAPTURE)
         // 某些手机此设置是不生效的，需要自行封装解决
-        captureIntent.putExtra(MediaStore.EXTRA_DURATION_LIMIT, mLimitTime)
+        captureIntent.putExtra(MediaStore.EXTRA_DURATION_LIMIT, pickerLimitTime)
         val packageManager = context!!.packageManager
         val camList = packageManager.queryIntentActivities(captureIntent, 0)
         for (res in camList) {
@@ -363,11 +266,11 @@ class PickerFragment : Fragment() {
             val intent = Intent(captureIntent)
             intent.component = ComponentName(res.activityInfo.packageName, res.activityInfo.name)
             intent.setPackage(packageName)
-            intent.putExtra(MediaStore.EXTRA_OUTPUT, temFileUri)
-            grantWritePermission(context!!, intent, temFileUri!!)
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, cameraFileUri)
+            grantWritePermission(context!!, intent, cameraFileUri!!)
             cameraIntents.add(intent)
         }
-        Intent.createChooser(createPickMore(), mChooserTitle).also {
+        Intent.createChooser(createPickMore(), pickerTitle).also {
             it.putExtra(Intent.EXTRA_INITIAL_INTENTS, cameraIntents.toTypedArray())
             return it
         }
@@ -375,7 +278,7 @@ class PickerFragment : Fragment() {
 
     /**构建音频选择器Intent*/
     private fun createAudioChooserIntent(): Intent {
-        temFileUri = createVideoUri()
+        cameraFileUri = createVideoUri()
         val cameraIntents = ArrayList<Intent>()
         val captureIntent = Intent(MediaStore.Audio.Media.RECORD_SOUND_ACTION)
         val packageManager = context!!.packageManager
@@ -385,11 +288,11 @@ class PickerFragment : Fragment() {
             val intent = Intent(captureIntent)
             intent.component = ComponentName(res.activityInfo.packageName, res.activityInfo.name)
             intent.setPackage(packageName)
-            intent.putExtra(MediaStore.EXTRA_OUTPUT, temFileUri)
-            grantWritePermission(context!!, intent, temFileUri!!)
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, cameraFileUri)
+            grantWritePermission(context!!, intent, cameraFileUri!!)
             cameraIntents.add(intent)
         }
-        Intent.createChooser(createPickMore(), mChooserTitle).also {
+        Intent.createChooser(createPickMore(), pickerTitle).also {
             it.putExtra(Intent.EXTRA_INITIAL_INTENTS, cameraIntents.toTypedArray())
             return it
         }
@@ -457,7 +360,7 @@ class PickerFragment : Fragment() {
 
     /**获取选择结果*/
     private fun handleFileResult(data: Intent?) {
-        if (isMultiple) {
+        if (pickerMultiple) {
             val imageUris = ArrayList<Uri>()
             val clipData = data?.clipData
             if (clipData != null) {
@@ -467,30 +370,37 @@ class PickerFragment : Fragment() {
             } else {
                 data?.data?.let { imageUris.add(it) }
             }
-            pushImageList(imageUris)
+            postMultiFiles(imageUris)
         } else {
             data?.data?.let {
-                pushImage(it)
-            } ?: onFailed("图片获取失败")
+                postSingleFile(it)
+            } ?: onFailed("获取文件失败")
         }
     }
 
-    /**传递选择的多图*/
-    private fun pushImageList(uris: List<Uri>) {
+    /**传递拍摄文件*/
+    private fun postCamera() {
+        cameraFileUri?.let {
+            postSingleFile(it)
+        } ?: onFailed("照片获取失败")
+    }
+
+    /**传递选择的单文件*/
+    private fun postSingleFile(uri: Uri) {
+        postMultiFiles(arrayListOf(uri))
+    }
+
+    /**传递选择的多文件*/
+    private fun postMultiFiles(uris: List<Uri>) {
         if (uris.isEmpty()) {
-            this.failed?.invoke("图片获取失败")
+            onFailed("未获取到文件")
         } else {
             this.result?.invoke(PickResult(uris))
         }
     }
 
-    /**传递选择的单图*/
-    private fun pushImage(uri: Uri) {
-        pushImageList(arrayListOf(uri))
-    }
-
     private fun onFailed(msg: String) {
-        this.failed?.invoke(msg)
+        this.failed?.invoke(true, msg)
     }
 
 }
