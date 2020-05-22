@@ -41,7 +41,7 @@ class FilePicker {
         fun setLimitTime(limitTime: Int): Builder
         fun setTitle(title: String): Builder
         fun setMimeTypes(mimeTypes: Array<String>): Builder
-        fun setSize(size: Int): Builder
+        fun setMulti(multi: Boolean): Builder
         fun setType(@Type type: Int): Builder
         fun picker(result: (PickResult) -> Unit): Builder
         fun onFailed(failed: (Boolean, String) -> Unit): Builder
@@ -51,7 +51,7 @@ class FilePicker {
     abstract class AbsBuilder : Builder {
         private var pickerType: Int = CHOOSER
         private var pickerMimeTypes: Array<String> = arrayOf("*/*")
-        private var pickerSize: Int = 1
+        private var pickerMulti: Boolean = false
         private var pickerTitle: String = "文件选择"
         private var pickerLimitTime: Int = 20
 
@@ -73,8 +73,8 @@ class FilePicker {
             return this
         }
 
-        override fun setSize(size: Int): Builder {
-            this.pickerSize = size
+        override fun setMulti(multi: Boolean): Builder {
+            this.pickerMulti = multi
             return this
         }
 
@@ -97,9 +97,9 @@ class FilePicker {
             val f = getInstance(fm)
             val bundle = Bundle()
             bundle.putInt("pickerType", pickerType)
-            bundle.putInt("pickerSize", pickerSize)
             bundle.putInt("pickerLimitTime", pickerLimitTime)
             bundle.putInt("pickerFileType", getFileType())
+            bundle.putBoolean("pickerMulti", pickerMulti)
             bundle.putString("pickerTitle", pickerTitle)
             bundle.putStringArray("pickerMimeTypes", pickerMimeTypes)
             f.arguments = bundle
@@ -144,6 +144,7 @@ class FilePicker {
     class FileBuilder(override val fm: FragmentManager) : AbsBuilder() {
         init {
             setTitle("文件选择")
+            setType(CHOOSE)
         }
 
         override fun getFileType(): Int = FILE

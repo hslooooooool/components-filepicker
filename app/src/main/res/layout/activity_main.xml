@@ -1,84 +1,389 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
+    android:background="#E0E0E0"
     tools:context=".MainActivity">
 
-    <TextView
-        android:id="@+id/take_image"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="20dp"
-        android:text="take image"
-        android:textColor="@color/colorPrimary"
-        android:textSize="16sp"
-        android:textStyle="bold" />
+        android:orientation="vertical"
+        tools:context=".MainActivity">
 
-    <TextView
-        android:id="@+id/take_photo"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="20dp"
-        android:text="take photo"
-        android:textColor="@color/colorPrimary"
-        android:textSize="16sp"
-        android:textStyle="bold" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="2dp"
+            android:orientation="horizontal">
 
-    <TextView
-        android:id="@+id/take_album"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="20dp"
-        android:text="take album"
-        android:textColor="@color/colorPrimary"
-        android:textSize="16sp"
-        android:textStyle="bold" />
+            <ImageView
+                android:id="@+id/take_image_result"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:background="#EEEEEE"
+                android:scaleType="fitCenter" />
 
-    <TextView
-        android:id="@+id/take_album_multi"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="20dp"
-        android:text="take album multi"
-        android:textColor="@color/colorPrimary"
-        android:textSize="16sp"
-        android:textStyle="bold" />
+            <TextView
+                android:id="@+id/take_image"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginStart="2dp"
+                android:background="#FFFFFF"
+                android:gravity="center|end"
+                android:paddingEnd="20dp"
+                android:text="take_photo"
+                android:textColor="@color/colorPrimary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
-    <TextView
-        android:id="@+id/take_file"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="20dp"
-        android:text="take file"
-        android:textColor="@color/colorPrimary"
-        android:textSize="16sp"
-        android:textStyle="bold" />
+        </LinearLayout>
 
-    <TextView
-        android:id="@+id/take_file_multi"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="20dp"
-        android:text="take file multi"
-        android:textColor="@color/colorPrimary"
-        android:textSize="16sp"
-        android:textStyle="bold" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="2dp"
+            android:orientation="horizontal">
 
-    <TextView
-        android:id="@+id/take_result_info"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="20dp"
-        android:text="take result info"
-        android:textSize="12sp"
-        android:textStyle="italic" />
+            <ImageView
+                android:id="@+id/take_image_choose_result"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:background="#EEEEEE"
+                android:scaleType="fitCenter" />
 
-    <ImageView
-        android:id="@+id/take_result_avatar"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#EEEEEE"
-        android:scaleType="fitCenter" />
-</LinearLayout>
+            <TextView
+                android:id="@+id/take_image_choose"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginStart="2dp"
+                android:background="#FFFFFF"
+                android:gravity="center|end"
+                android:paddingEnd="20dp"
+                android:text="take_image_choose"
+                android:textColor="@color/colorPrimary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="2dp"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/take_image_multi_result1"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:background="#EEEEEE"
+                android:scaleType="fitCenter" />
+
+            <ImageView
+                android:id="@+id/take_image_multi_result2"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="2dp"
+                android:background="#EEEEEE"
+                android:scaleType="fitCenter" />
+
+            <ImageView
+                android:id="@+id/take_image_multi_result3"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="2dp"
+                android:background="#EEEEEE"
+                android:scaleType="fitCenter" />
+
+            <TextView
+                android:id="@+id/take_image_multi"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginStart="2dp"
+                android:background="#FFFFFF"
+                android:gravity="center|end"
+                android:paddingEnd="20dp"
+                android:text="take_image_multi"
+                android:textColor="@color/colorPrimary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="2dp"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/take_image_chooser_result1"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:background="#EEEEEE"
+                android:scaleType="fitCenter" />
+
+            <ImageView
+                android:id="@+id/take_image_chooser_result2"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="2dp"
+                android:background="#EEEEEE"
+                android:scaleType="fitCenter" />
+
+            <TextView
+                android:id="@+id/take_image_chooser"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginStart="2dp"
+                android:background="#FFFFFF"
+                android:gravity="center|end"
+                android:paddingEnd="20dp"
+                android:text="take_image_chooser"
+                android:textColor="@color/colorPrimary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="2dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/take_video_result"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:background="#FFFFFF"
+                android:gravity="center_vertical"
+                android:text="take result info"
+                android:textSize="12sp"
+                android:textStyle="italic" />
+
+            <TextView
+                android:id="@+id/take_video"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginStart="2dp"
+                android:background="#FFFFFF"
+                android:gravity="center|end"
+                android:paddingEnd="20dp"
+                android:text="take_video"
+                android:textColor="@color/colorPrimary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="2dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/take_video_choose_result"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:background="#FFFFFF"
+                android:gravity="center_vertical"
+                android:text="take result info"
+                android:textSize="12sp"
+                android:textStyle="italic" />
+
+            <TextView
+                android:id="@+id/take_video_choose"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginStart="2dp"
+                android:background="#FFFFFF"
+                android:gravity="center|end"
+                android:paddingEnd="20dp"
+                android:text="take_video_choose"
+                android:textColor="@color/colorPrimary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="2dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/take_audio_result"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:background="#FFFFFF"
+                android:gravity="center_vertical"
+                android:text="take result info"
+                android:textSize="12sp"
+                android:textStyle="italic" />
+
+            <TextView
+                android:id="@+id/take_audio"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginStart="2dp"
+                android:background="#FFFFFF"
+                android:gravity="center|end"
+                android:paddingEnd="20dp"
+                android:text="take_audio"
+                android:textColor="@color/colorPrimary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="2dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/take_audio_choose_result"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:background="#FFFFFF"
+                android:gravity="center_vertical"
+                android:text="take result info"
+                android:textSize="12sp"
+                android:textStyle="italic" />
+
+            <TextView
+                android:id="@+id/take_audio_choose"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginStart="2dp"
+                android:background="#FFFFFF"
+                android:gravity="center|end"
+                android:paddingEnd="20dp"
+                android:text="take_audio_choose"
+                android:textColor="@color/colorPrimary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="2dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/take_audio_chooser_result"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:background="#FFFFFF"
+                android:gravity="center_vertical"
+                android:text="take result info"
+                android:textSize="12sp"
+                android:textStyle="italic" />
+
+            <TextView
+                android:id="@+id/take_audio_chooser"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginStart="2dp"
+                android:background="#FFFFFF"
+                android:gravity="center|end"
+                android:paddingEnd="20dp"
+                android:text="take_audio_chooser"
+                android:textColor="@color/colorPrimary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="2dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/take_file_result"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:background="#FFFFFF"
+                android:gravity="center_vertical"
+                android:text="take result info"
+                android:textSize="12sp"
+                android:textStyle="italic" />
+
+            <TextView
+                android:id="@+id/take_file"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginStart="2dp"
+                android:background="#FFFFFF"
+                android:gravity="center|end"
+                android:paddingEnd="20dp"
+                android:text="take_file"
+                android:textColor="@color/colorPrimary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/take_file_multi"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginBottom="2dp"
+                android:background="#FFFFFF"
+                android:gravity="center"
+                android:paddingEnd="20dp"
+                android:text="take_file_multi"
+                android:textColor="@color/colorPrimary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/take_file_multi_result1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#FFFFFF"
+                android:gravity="center_vertical"
+                android:text="take result info"
+                android:textSize="12sp"
+                android:textStyle="italic" />
+
+            <TextView
+                android:id="@+id/take_file_multi_result2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#FFFFFF"
+                android:gravity="center_vertical"
+                android:text="take result info"
+                android:textSize="12sp"
+                android:textStyle="italic" />
+
+            <TextView
+                android:id="@+id/take_file_multi_result3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#FFFFFF"
+                android:gravity="center_vertical"
+                android:text="take result info"
+                android:textSize="12sp"
+                android:textStyle="italic" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>
