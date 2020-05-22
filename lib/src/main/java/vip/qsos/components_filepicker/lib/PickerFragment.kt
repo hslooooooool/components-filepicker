@@ -88,11 +88,12 @@ class PickerFragment(private val fm: FragmentManager) : Fragment() {
                 }
             }
         } else {
-            this.failed?.invoke(false, "取消选择")
+            onFailed("取消选择")
         }
     }
 
     override fun onDestroy() {
+        deleteUri()
         this.cameraFileUri = null
         this.result = null
         this.failed = null
@@ -245,9 +246,8 @@ class PickerFragment(private val fm: FragmentManager) : Fragment() {
             grantWritePermission(context!!, intent, cameraFileUri!!)
             intents.add(intent)
         }
-        Intent.createChooser(createPickMore(), pickerTitle).also {
-            it.putExtra(Intent.EXTRA_INITIAL_INTENTS, intents.toTypedArray())
-            return it
+        return Intent.createChooser(createPickMore(), pickerTitle).apply {
+            putExtra(Intent.EXTRA_INITIAL_INTENTS, intents.toTypedArray())
         }
     }
 
@@ -327,6 +327,15 @@ class PickerFragment(private val fm: FragmentManager) : Fragment() {
         return contentResolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, cv)
     }
 
+    /**删除无效 Uri */
+    private fun deleteUri() {
+        cameraFileUri?.let {
+            val contentResolver = activity!!.contentResolver
+            contentResolver.delete(it, null, null)
+        }
+
+    }
+
     /**申请文件读写权限*/
     private fun checkPermission(): Boolean {
         return if (ContextCompat.checkSelfPermission(
@@ -368,6 +377,7 @@ class PickerFragment(private val fm: FragmentManager) : Fragment() {
     /**获取选择结果*/
     private fun handleFileResult(data: Intent?) {
         if (pickerMulti) {
+            deleteUri()
             val imageUris = ArrayList<Uri>()
             val clipData = data?.clipData
             if (clipData != null) {
@@ -407,6 +417,7 @@ class PickerFragment(private val fm: FragmentManager) : Fragment() {
     }
 
     private fun onFailed(msg: String) {
+        deleteUri()
         this.failed?.invoke(true, msg)
     }
 
