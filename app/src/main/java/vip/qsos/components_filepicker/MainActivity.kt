@@ -40,7 +40,7 @@ class MainActivity : AppCompatActivity() {
                 .picker {
                     MainScope().launch {
                         FileConverters.uriToBitmap(this@MainActivity, it.data[0]) {
-                            it?.let { take_image_choose_result.setImageBitmap(it) }
+                            take_image_choose_result.setImageBitmap(it)
                         }
                     }
                 }
@@ -59,11 +59,9 @@ class MainActivity : AppCompatActivity() {
                     MainScope().launch {
                         it.data.forEachIndexed { index, uri ->
                             FileConverters.uriToBitmap(this@MainActivity, uri) {
-                                it?.let {
-                                    when (index) {
-                                        0 -> take_image_chooser_result1.setImageBitmap(it)
-                                        1 -> take_image_chooser_result2.setImageBitmap(it)
-                                    }
+                                when (index) {
+                                    0 -> take_image_chooser_result1.setImageBitmap(it)
+                                    1 -> take_image_chooser_result2.setImageBitmap(it)
                                 }
                             }
                         }
@@ -84,12 +82,10 @@ class MainActivity : AppCompatActivity() {
                     MainScope().launch {
                         it.data.forEachIndexed { index, uri ->
                             FileConverters.uriToBitmap(this@MainActivity, uri) {
-                                it?.let {
-                                    when (index) {
-                                        0 -> take_image_multi_result1.setImageBitmap(it)
-                                        1 -> take_image_multi_result2.setImageBitmap(it)
-                                        2 -> take_image_multi_result3.setImageBitmap(it)
-                                    }
+                                when (index) {
+                                    0 -> take_image_multi_result1.setImageBitmap(it)
+                                    1 -> take_image_multi_result2.setImageBitmap(it)
+                                    2 -> take_image_multi_result3.setImageBitmap(it)
                                 }
                             }
                         }
@@ -108,7 +104,7 @@ class MainActivity : AppCompatActivity() {
                 .picker {
                     MainScope().launch {
                         FileConverters.uriToFile(this@MainActivity, it.data[0]) {
-                            it?.let { take_video_result.text = it.path }
+                            take_video_result.text = it.path
                         }
                     }
                 }
@@ -125,7 +121,7 @@ class MainActivity : AppCompatActivity() {
                 .picker {
                     MainScope().launch {
                         FileConverters.uriToFile(this@MainActivity, it.data[0]) {
-                            it?.let { take_video_choose_result.text = it.path }
+                            take_video_choose_result.text = it.path
                         }
                     }
                 }
@@ -142,7 +138,7 @@ class MainActivity : AppCompatActivity() {
                 .picker {
                     MainScope().launch {
                         FileConverters.uriToFile(this@MainActivity, it.data[0]) {
-                            it?.let { take_audio_result.text = it.path }
+                            take_audio_result.text = it.path
                         }
                     }
                 }
@@ -159,7 +155,7 @@ class MainActivity : AppCompatActivity() {
                 .picker {
                     MainScope().launch {
                         FileConverters.uriToFile(this@MainActivity, it.data[0]) {
-                            it?.let { take_audio_choose_result.text = it.path }
+                            take_audio_choose_result.text = it.path
                         }
                     }
                 }
@@ -176,7 +172,7 @@ class MainActivity : AppCompatActivity() {
                 .picker {
                     MainScope().launch {
                         FileConverters.uriToFile(this@MainActivity, it.data[0]) {
-                            it?.let { take_audio_chooser_result.text = it.path }
+                            take_audio_chooser_result.text = it.path
                         }
                     }
                 }
@@ -192,7 +188,7 @@ class MainActivity : AppCompatActivity() {
                 .picker {
                     MainScope().launch {
                         FileConverters.uriToFile(this@MainActivity, it.data[0]) {
-                            it?.let { take_file_result.text = it.absolutePath }
+                            take_file_result.text = it.absolutePath
                         }
                     }
                 }
@@ -210,7 +206,7 @@ class MainActivity : AppCompatActivity() {
                     MainScope().launch {
                         it.data.forEachIndexed { index, uri ->
                             FileConverters.uriToFile(this@MainActivity, uri) { file ->
-                                file?.path?.let {
+                                file.path.also {
                                     when (index) {
                                         0 -> take_file_multi_result1.text = it
                                         1 -> take_file_multi_result2.text = it

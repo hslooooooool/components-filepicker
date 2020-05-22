@@ -156,8 +156,9 @@
 
             <TextView
                 android:id="@+id/take_video_result"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="50dp"
+                android:layout_weight="1"
                 android:background="#FFFFFF"
                 android:gravity="center_vertical"
                 android:text="take result info"
@@ -166,7 +167,7 @@
 
             <TextView
                 android:id="@+id/take_video"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="50dp"
                 android:layout_marginStart="2dp"
                 android:background="#FFFFFF"
@@ -187,8 +188,9 @@
 
             <TextView
                 android:id="@+id/take_video_choose_result"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="50dp"
+                android:layout_weight="1"
                 android:background="#FFFFFF"
                 android:gravity="center_vertical"
                 android:text="take result info"
@@ -197,7 +199,7 @@
 
             <TextView
                 android:id="@+id/take_video_choose"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="50dp"
                 android:layout_marginStart="2dp"
                 android:background="#FFFFFF"
@@ -218,8 +220,9 @@
 
             <TextView
                 android:id="@+id/take_audio_result"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="50dp"
+                android:layout_weight="1"
                 android:background="#FFFFFF"
                 android:gravity="center_vertical"
                 android:text="take result info"
@@ -228,7 +231,7 @@
 
             <TextView
                 android:id="@+id/take_audio"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="50dp"
                 android:layout_marginStart="2dp"
                 android:background="#FFFFFF"
@@ -249,8 +252,9 @@
 
             <TextView
                 android:id="@+id/take_audio_choose_result"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="50dp"
+                android:layout_weight="1"
                 android:background="#FFFFFF"
                 android:gravity="center_vertical"
                 android:text="take result info"
@@ -259,7 +263,7 @@
 
             <TextView
                 android:id="@+id/take_audio_choose"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="50dp"
                 android:layout_marginStart="2dp"
                 android:background="#FFFFFF"
@@ -280,8 +284,9 @@
 
             <TextView
                 android:id="@+id/take_audio_chooser_result"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="50dp"
+                android:layout_weight="1"
                 android:background="#FFFFFF"
                 android:gravity="center_vertical"
                 android:text="take result info"
@@ -290,7 +295,7 @@
 
             <TextView
                 android:id="@+id/take_audio_chooser"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="50dp"
                 android:layout_marginStart="2dp"
                 android:background="#FFFFFF"
@@ -311,8 +316,9 @@
 
             <TextView
                 android:id="@+id/take_file_result"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="50dp"
+                android:layout_weight="1"
                 android:background="#FFFFFF"
                 android:gravity="center_vertical"
                 android:text="take result info"
@@ -321,7 +327,7 @@
 
             <TextView
                 android:id="@+id/take_file"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="50dp"
                 android:layout_marginStart="2dp"
                 android:background="#FFFFFF"

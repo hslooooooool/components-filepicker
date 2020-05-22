@@ -10,7 +10,9 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.provider.MediaStore
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
@@ -48,14 +50,6 @@ class PickerFragment(private val fm: FragmentManager) : Fragment() {
 
     /**是否为多选*/
     private var pickerMulti: Boolean = false
-
-    /**可选择文件类型*/
-    private val pickerMimeType: String
-        get() = if (pickerMimeTypes.isEmpty()) {
-            "*/*"
-        } else {
-            pickerMimeTypes[0]
-        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -124,6 +118,7 @@ class PickerFragment(private val fm: FragmentManager) : Fragment() {
     }
 
     private fun initConfig() {
+        this.cameraFileUri = null
         this.arguments?.also {
             this.pickerType = it.getInt("pickerType", pickerType)
             this.pickerFileType = it.getInt("pickerFileType", pickerFileType)
@@ -148,89 +143,72 @@ class PickerFragment(private val fm: FragmentManager) : Fragment() {
         // 初始化配置
         initConfig()
 
-        cameraFileUri = null
-        var chooseIntent: Intent? = null
-        when {
-            /**拍照*/
-            pickerType == FilePicker.DEVICE && pickerFileType == FilePicker.IMAGE -> {
-                cameraFileUri = createImageUri()
-                chooseIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).also {
-                    it.putExtra(MediaStore.EXTRA_OUTPUT, cameraFileUri)
-                    grantWritePermission(context!!, it, cameraFileUri!!)
+        val chooseIntent: Intent?
+        var requestCode: Int
+        when (pickerFileType) {
+            /**图片*/
+            FilePicker.IMAGE -> {
+                if (pickerType == FilePicker.DEVICE) {
+                    cameraFileUri = createImageUri()
+                    chooseIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).also {
+                        requestCode = 1
+                        it.putExtra(MediaStore.EXTRA_OUTPUT, cameraFileUri)
+                        grantWritePermission(context!!, it, cameraFileUri!!)
+                    }
+                } else {
+                    requestCode = 3
+                    chooseIntent = createImageChooserIntent()
                 }
             }
-            /**拍照或选择*/
-            pickerType == FilePicker.CHOOSER && pickerFileType == FilePicker.IMAGE -> {
-                chooseIntent = createImageChooserIntent()
-            }
-
-            /**视频拍摄*/
-            pickerType == FilePicker.DEVICE && pickerFileType == FilePicker.VIDEO -> {
-                cameraFileUri = createVideoUri()
-                chooseIntent = Intent(MediaStore.ACTION_VIDEO_CAPTURE).also {
-                    it.putExtra(MediaStore.EXTRA_DURATION_LIMIT, pickerLimitTime)
-                    it.putExtra(MediaStore.EXTRA_OUTPUT, cameraFileUri)
-                    grantWritePermission(context!!, it, cameraFileUri!!)
+            /**视频*/
+            FilePicker.VIDEO -> {
+                if (pickerType == FilePicker.DEVICE) {
+                    requestCode = 1
+                    cameraFileUri = createVideoUri()
+                    chooseIntent = Intent(MediaStore.ACTION_VIDEO_CAPTURE).apply {
+                        this.putExtra(MediaStore.EXTRA_DURATION_LIMIT, pickerLimitTime)
+                        this.putExtra(MediaStore.EXTRA_OUTPUT, cameraFileUri)
+                        grantWritePermission(context!!, this, cameraFileUri!!)
+                    }
+                } else {
+                    requestCode = 3
+                    chooseIntent = createVideoChooserIntent()
                 }
             }
-            /**视频拍摄或选择*/
-            pickerType == FilePicker.CHOOSER && pickerFileType == FilePicker.VIDEO -> {
-                chooseIntent = createVideoChooserIntent()
-            }
-
-            /**音频录制*/
-            pickerType == FilePicker.DEVICE && pickerFileType == FilePicker.AUDIO -> {
-                cameraFileUri = createAudioUri()
-                chooseIntent = Intent(MediaStore.Audio.Media.RECORD_SOUND_ACTION).also {
-                    it.putExtra(MediaStore.EXTRA_DURATION_LIMIT, pickerLimitTime)
-                    it.putExtra(MediaStore.EXTRA_OUTPUT, cameraFileUri)
-                    grantWritePermission(context!!, it, cameraFileUri!!)
+            /**音频*/
+            FilePicker.AUDIO -> {
+                if (pickerType == FilePicker.DEVICE) {
+                    requestCode = 2
+                    chooseIntent = Intent(MediaStore.Audio.Media.RECORD_SOUND_ACTION)
+                } else {
+                    requestCode = 3
+                    chooseIntent = createAudioChooserIntent()
                 }
             }
-            /**音频录制或选择*/
-            pickerType == FilePicker.CHOOSER && pickerFileType == FilePicker.AUDIO -> {
-                chooseIntent = createAudioChooserIntent()
-            }
-
-            /**文件多选*/
-            pickerType == FilePicker.CHOOSE && pickerMulti -> {
-                chooseIntent = createPickMore()
-            }
-            /**文件单选*/
-            pickerType == FilePicker.CHOOSE -> {
-                chooseIntent = createPickOne()
+            /**文件*/
+            else -> {
+                requestCode = 2
+                chooseIntent = createFilePickIntent()
             }
         }
         activity?.packageManager?.let {
-            chooseIntent?.resolveActivity(it)?.let {
-                startActivityForResult(chooseIntent, pickerType)
+            chooseIntent.resolveActivity(it)?.let {
+                startActivityForResult(chooseIntent, requestCode)
             }
         }
     }
 
-    /**构建文件单选Intent*/
-    private fun createPickOne(): Intent {
-        val pictureChooseIntent =
-            Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-        pictureChooseIntent.type = pickerMimeType
-        pictureChooseIntent.putExtra(Intent.EXTRA_MIME_TYPES, pickerMimeTypes)
-        return pictureChooseIntent
-    }
-
-    /**构建文件多选Intent*/
-    private fun createPickMore(): Intent {
+    /**构建文件选择器 Intent*/
+    private fun createFilePickIntent(): Intent {
         val pictureChooseIntent = Intent(Intent.ACTION_OPEN_DOCUMENT)
         pictureChooseIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, pickerMulti)
-
-        pictureChooseIntent.type = pickerMimeType
+        pictureChooseIntent.type = "*/*"
         pictureChooseIntent.putExtra(Intent.EXTRA_MIME_TYPES, pickerMimeTypes)
-        pictureChooseIntent.putExtra(Intent.EXTRA_LOCAL_ONLY, true)
-        /**临时授权app访问URI代表的文件所有权*/
         pictureChooseIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         return pictureChooseIntent
     }
 
-    /**构建图片选择器Intent*/
+    /**构建图片选择器 Intent*/
     private fun createImageChooserIntent(): Intent {
         cameraFileUri = createImageUri()
         val intents = ArrayList<Intent>()
@@ -241,17 +219,19 @@ class PickerFragment(private val fm: FragmentManager) : Fragment() {
             val packageName = res.activityInfo.packageName
             val intent = Intent(captureIntent)
             intent.component = ComponentName(packageName, res.activityInfo.name)
-            intent.putExtra(MediaStore.EXTRA_OUTPUT, cameraFileUri)
+            intent.type = "*/*"
+            intent.putExtra(Intent.EXTRA_MIME_TYPES, pickerMimeTypes)
             intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, pickerMulti)
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, cameraFileUri)
             grantWritePermission(context!!, intent, cameraFileUri!!)
             intents.add(intent)
         }
-        return Intent.createChooser(createPickMore(), pickerTitle).apply {
+        return Intent.createChooser(createFilePickIntent(), pickerTitle).apply {
             putExtra(Intent.EXTRA_INITIAL_INTENTS, intents.toTypedArray())
         }
     }
 
-    /**构建视频选择器Intent*/
+    /**构建视频选择器 Intent*/
     private fun createVideoChooserIntent(): Intent {
         cameraFileUri = createVideoUri()
         val intents = ArrayList<Intent>()
@@ -262,13 +242,15 @@ class PickerFragment(private val fm: FragmentManager) : Fragment() {
             val packageName = res.activityInfo.packageName
             val intent = Intent(captureIntent)
             intent.component = ComponentName(packageName, res.activityInfo.name)
+            intent.type = "*/*"
+            intent.putExtra(Intent.EXTRA_MIME_TYPES, pickerMimeTypes)
             intent.putExtra(MediaStore.EXTRA_OUTPUT, cameraFileUri)
             intent.putExtra(MediaStore.EXTRA_DURATION_LIMIT, pickerLimitTime)
             intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, pickerMulti)
             grantWritePermission(context!!, intent, cameraFileUri!!)
             intents.add(intent)
         }
-        Intent.createChooser(createPickMore(), pickerTitle).also {
+        Intent.createChooser(createFilePickIntent(), pickerTitle).also {
             it.putExtra(Intent.EXTRA_INITIAL_INTENTS, intents.toTypedArray())
             return it
         }
@@ -276,7 +258,6 @@ class PickerFragment(private val fm: FragmentManager) : Fragment() {
 
     /**构建音频选择器Intent*/
     private fun createAudioChooserIntent(): Intent {
-        cameraFileUri = createVideoUri()
         val cameraIntents = ArrayList<Intent>()
         val captureIntent = Intent(MediaStore.Audio.Media.RECORD_SOUND_ACTION)
         val packageManager = context!!.packageManager
@@ -285,13 +266,12 @@ class PickerFragment(private val fm: FragmentManager) : Fragment() {
             val packageName = res.activityInfo.packageName
             val intent = Intent(captureIntent)
             intent.component = ComponentName(packageName, res.activityInfo.name)
-            intent.putExtra(MediaStore.EXTRA_OUTPUT, cameraFileUri)
-            intent.putExtra(MediaStore.EXTRA_DURATION_LIMIT, pickerLimitTime)
+            intent.type = "*/*"
+            intent.putExtra(Intent.EXTRA_MIME_TYPES, pickerMimeTypes)
             intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, pickerMulti)
-            grantWritePermission(context!!, intent, cameraFileUri!!)
             cameraIntents.add(intent)
         }
-        Intent.createChooser(createPickMore(), pickerTitle).also {
+        Intent.createChooser(createFilePickIntent(), pickerTitle).also {
             it.putExtra(Intent.EXTRA_INITIAL_INTENTS, cameraIntents.toTypedArray())
             return it
         }
@@ -299,6 +279,7 @@ class PickerFragment(private val fm: FragmentManager) : Fragment() {
 
     /**创建拍照保存路径*/
     private fun createImageUri(): Uri? {
+        context?.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
         val timeStamp: String =
             "IMAGE-" + SimpleDateFormat("yyyy-MM-dd HH-mm-ss", Locale.getDefault()).format(Date())
         val contentResolver = activity!!.contentResolver
@@ -317,16 +298,6 @@ class PickerFragment(private val fm: FragmentManager) : Fragment() {
         return contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, cv)
     }
 
-    /**创建录音保存路径*/
-    private fun createAudioUri(): Uri? {
-        val timeStamp: String =
-            "AUDIO-" + SimpleDateFormat("yyyy-MM-dd HH-mm-ss", Locale.getDefault()).format(Date())
-        val contentResolver = activity!!.contentResolver
-        val cv = ContentValues()
-        cv.put(MediaStore.Audio.Media.TITLE, timeStamp)
-        return contentResolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, cv)
-    }
-
     /**删除无效 Uri */
     private fun deleteUri() {
         cameraFileUri?.let {
@@ -338,25 +309,38 @@ class PickerFragment(private val fm: FragmentManager) : Fragment() {
 
     /**申请文件读写权限*/
     private fun checkPermission(): Boolean {
-        return if (ContextCompat.checkSelfPermission(
-                activity!!,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                requestPermissions(arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), 0)
+        var pass = true
+        val permissions = arrayOf(
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        )
+        for (p in permissions) {
+            activity?.let {
+                pass = ContextCompat.checkSelfPermission(it, p) == PackageManager.PERMISSION_GRANTED
             }
-            false
-        } else {
-            true
+            if (!pass) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    requestPermissions(permissions, 0)
+                }
+                break
+            }
         }
+        return pass
     }
 
     override fun onRequestPermissionsResult(
         requestCode: Int, permissions: Array<String>, grantResults: IntArray
     ) {
-        if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+        var pass = true
+        grantResults.forEach {
+            if (PackageManager.PERMISSION_GRANTED != it) {
+                pass = false
+            }
+        }
+        if (pass) {
             startPick()
+        } else {
+            Toast.makeText(activity, "授权失败，无法使用此功能", Toast.LENGTH_LONG).show()
         }
     }
 

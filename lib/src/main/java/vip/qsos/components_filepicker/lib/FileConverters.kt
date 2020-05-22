@@ -1,7 +1,7 @@
 package vip.qsos.components_filepicker.lib
 
+import android.annotation.SuppressLint
 import android.content.Context
-import android.database.Cursor
 import android.graphics.Bitmap
 import android.net.Uri
 import android.provider.MediaStore
@@ -18,63 +18,65 @@ import java.io.InputStream
 object FileConverters {
 
     /** Uri 转为 File */
-    suspend fun uriToFile(context: Context, uri: Uri, result: (File?) -> Unit) {
+    @SuppressLint("Recycle")
+    suspend fun uriToFile(context: Context, uri: Uri, result: (File) -> Unit) {
         flow {
             try {
-                val filePathColumn =
-                    arrayOf(MediaStore.Images.Media.DATA)
-                val cursor: Cursor? =
-                    context.contentResolver.query(uri, filePathColumn, null, null, null)
-                cursor?.moveToFirst()
                 var filePath: String? = null
-                cursor?.getColumnIndex(filePathColumn[0])?.let {
-                    filePath = cursor.getString(it)
+                context.contentResolver.query(
+                    uri, arrayOf(MediaStore.Images.Media.DATA),
+                    null, null, null
+                )?.let { cursor ->
+                    cursor.moveToFirst()
+                    cursor.getColumnIndex(MediaStore.Images.Media.DATA).let {
+                        filePath = cursor.getString(it)
+                    }
+                    cursor.close()
                 }
-                cursor?.close()
                 filePath?.let { File(it) }
             } catch (e: Exception) {
+                e.printStackTrace()
                 null
             }?.let {
                 emit(it)
             }
-        }
-            .flowOn(Dispatchers.IO)
+        }.flowOn(Dispatchers.IO)
             .collect {
                 result.invoke(it)
             }
     }
 
     /** Uri 转为 File */
-    suspend fun uriCopyToFile(context: Context, uri: Uri, file: File, result: (File?) -> Unit) {
+    suspend fun uriCopyToFile(context: Context, uri: Uri, file: File, result: (File) -> Unit) {
         flow {
             try {
                 val inputStream = context.contentResolver.openInputStream(uri)
                 file.copyInputStreamToFile(inputStream!!)
                 file
             } catch (e: Exception) {
+                e.printStackTrace()
                 null
             }?.let {
                 emit(it)
             }
-        }
-            .flowOn(Dispatchers.IO)
+        }.flowOn(Dispatchers.IO)
             .collect {
                 result.invoke(it)
             }
     }
 
     /** Uri 转为 Bitmap */
-    suspend fun uriToBitmap(context: Context, uri: Uri, result: (Bitmap?) -> Unit) {
-        flow<Bitmap?> {
+    suspend fun uriToBitmap(context: Context, uri: Uri, result: (Bitmap) -> Unit) {
+        flow {
             try {
                 MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
             } catch (e: Exception) {
+                e.printStackTrace()
                 null
             }?.let {
                 emit(it)
             }
-        }
-            .flowOn(Dispatchers.IO)
+        }.flowOn(Dispatchers.IO)
             .collect {
                 result.invoke(it)
             }
