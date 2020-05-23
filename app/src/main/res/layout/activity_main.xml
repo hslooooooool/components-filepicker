@@ -219,6 +219,38 @@
             android:orientation="horizontal">
 
             <TextView
+                android:id="@+id/take_video_chooser_result"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                android:background="#FFFFFF"
+                android:gravity="center_vertical"
+                android:text="take result info"
+                android:textSize="12sp"
+                android:textStyle="italic" />
+
+            <TextView
+                android:id="@+id/take_video_chooser"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:layout_marginStart="2dp"
+                android:background="#FFFFFF"
+                android:gravity="center|end"
+                android:paddingEnd="20dp"
+                android:text="take_video_chooser"
+                android:textColor="@color/colorPrimary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="2dp"
+            android:orientation="horizontal">
+
+            <TextView
                 android:id="@+id/take_audio_result"
                 android:layout_width="0dp"
                 android:layout_height="50dp"

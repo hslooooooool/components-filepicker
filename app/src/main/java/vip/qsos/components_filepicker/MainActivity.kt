@@ -21,8 +21,8 @@ class MainActivity : AppCompatActivity() {
                 .create()
                 .picker {
                     MainScope().launch {
-                        FileConverters.uriToBitmap(this@MainActivity, it.data[0]) {
-                            it?.let { take_image_result.setImageBitmap(it) }
+                        FileConverters.getBitmap(this@MainActivity, it.data[0]) {
+                            take_image_result.setImageBitmap(it)
                         }
                     }
                 }
@@ -39,7 +39,7 @@ class MainActivity : AppCompatActivity() {
                 .create()
                 .picker {
                     MainScope().launch {
-                        FileConverters.uriToBitmap(this@MainActivity, it.data[0]) {
+                        FileConverters.getBitmap(this@MainActivity, it.data[0]) {
                             take_image_choose_result.setImageBitmap(it)
                         }
                     }
@@ -58,7 +58,7 @@ class MainActivity : AppCompatActivity() {
                 .picker {
                     MainScope().launch {
                         it.data.forEachIndexed { index, uri ->
-                            FileConverters.uriToBitmap(this@MainActivity, uri) {
+                            FileConverters.getBitmap(this@MainActivity, uri) {
                                 when (index) {
                                     0 -> take_image_chooser_result1.setImageBitmap(it)
                                     1 -> take_image_chooser_result2.setImageBitmap(it)
@@ -81,7 +81,7 @@ class MainActivity : AppCompatActivity() {
                 .picker {
                     MainScope().launch {
                         it.data.forEachIndexed { index, uri ->
-                            FileConverters.uriToBitmap(this@MainActivity, uri) {
+                            FileConverters.getBitmap(this@MainActivity, uri) {
                                 when (index) {
                                     0 -> take_image_multi_result1.setImageBitmap(it)
                                     1 -> take_image_multi_result2.setImageBitmap(it)
@@ -103,8 +103,8 @@ class MainActivity : AppCompatActivity() {
                 .create()
                 .picker {
                     MainScope().launch {
-                        FileConverters.uriToFile(this@MainActivity, it.data[0]) {
-                            take_video_result.text = it.path
+                        FileConverters.getRealPathFromUri(this@MainActivity, it.data[0]) {
+                            take_video_result.text = it
                         }
                     }
                 }
@@ -120,8 +120,25 @@ class MainActivity : AppCompatActivity() {
                 .create()
                 .picker {
                     MainScope().launch {
-                        FileConverters.uriToFile(this@MainActivity, it.data[0]) {
-                            take_video_choose_result.text = it.path
+                        FileConverters.getRealPathFromUri(this@MainActivity, it.data[0]) {
+                            take_video_choose_result.text = it
+                        }
+                    }
+                }
+                .onFailed { _, msg ->
+                    toast(msg)
+                }
+                .commit()
+        }
+        // 单选视频选择
+        take_video_chooser.setOnClickListener {
+            FilePicker.VideoBuilder(supportFragmentManager)
+                .setType(FilePicker.CHOOSER)
+                .create()
+                .picker {
+                    MainScope().launch {
+                        FileConverters.getRealPathFromUri(this@MainActivity, it.data[0]) {
+                            take_video_chooser_result.text = it
                         }
                     }
                 }
@@ -137,8 +154,8 @@ class MainActivity : AppCompatActivity() {
                 .create()
                 .picker {
                     MainScope().launch {
-                        FileConverters.uriToFile(this@MainActivity, it.data[0]) {
-                            take_audio_result.text = it.path
+                        FileConverters.getRealPathFromUri(this@MainActivity, it.data[0]) {
+                            take_audio_result.text = it
                         }
                     }
                 }
@@ -154,8 +171,8 @@ class MainActivity : AppCompatActivity() {
                 .create()
                 .picker {
                     MainScope().launch {
-                        FileConverters.uriToFile(this@MainActivity, it.data[0]) {
-                            take_audio_choose_result.text = it.path
+                        FileConverters.getRealPathFromUri(this@MainActivity, it.data[0]) {
+                            take_audio_choose_result.text = it
                         }
                     }
                 }
@@ -171,8 +188,8 @@ class MainActivity : AppCompatActivity() {
                 .create()
                 .picker {
                     MainScope().launch {
-                        FileConverters.uriToFile(this@MainActivity, it.data[0]) {
-                            take_audio_chooser_result.text = it.path
+                        FileConverters.getRealPathFromUri(this@MainActivity, it.data[0]) {
+                            take_audio_chooser_result.text = it
                         }
                     }
                 }
@@ -187,8 +204,8 @@ class MainActivity : AppCompatActivity() {
                 .create()
                 .picker {
                     MainScope().launch {
-                        FileConverters.uriToFile(this@MainActivity, it.data[0]) {
-                            take_file_result.text = it.absolutePath
+                        FileConverters.getRealPathFromUri(this@MainActivity, it.data[0]) {
+                            take_file_result.text = it
                         }
                     }
                 }
@@ -205,13 +222,11 @@ class MainActivity : AppCompatActivity() {
                 .picker {
                     MainScope().launch {
                         it.data.forEachIndexed { index, uri ->
-                            FileConverters.uriToFile(this@MainActivity, uri) { file ->
-                                file.path.also {
-                                    when (index) {
-                                        0 -> take_file_multi_result1.text = it
-                                        1 -> take_file_multi_result2.text = it
-                                        2 -> take_file_multi_result3.text = it
-                                    }
+                            FileConverters.getRealPathFromUri(this@MainActivity, uri) { file ->
+                                when (index) {
+                                    0 -> take_file_multi_result1.text = file
+                                    1 -> take_file_multi_result2.text = file
+                                    2 -> take_file_multi_result3.text = file
                                 }
                             }
                         }
