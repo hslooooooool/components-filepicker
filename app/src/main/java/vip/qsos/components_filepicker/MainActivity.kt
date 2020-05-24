@@ -130,7 +130,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 .commit()
         }
-        // 单选视频选择
+        // 视频拍摄或选择
         take_video_chooser.setOnClickListener {
             FilePicker.VideoBuilder(supportFragmentManager)
                 .setType(FilePicker.CHOOSER)

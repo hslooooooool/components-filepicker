@@ -38,13 +38,29 @@ class FilePicker {
         val fm: FragmentManager
 
         fun getFileType(): Int
+
+        /**设置录制时长，秒。注意某些手机和系统版本不支持时长设置*/
         fun setLimitTime(limitTime: Int): Builder
+
+        /**设置选择时多窗口标题*/
         fun setTitle(title: String): Builder
+
+        /**设置可选文件mime类型*/
         fun setMimeTypes(mimeTypes: Array<String>): Builder
+
+        /**设置是否为多选*/
         fun setMulti(multi: Boolean): Builder
+
+        /**设置选择类型*/
         fun setType(@Type type: Int): Builder
+
+        /**选择结果回调*/
         fun picker(result: (PickResult) -> Unit): Builder
+
+        /**选择取消与失败回调*/
         fun onFailed(failed: (Boolean, String) -> Unit): Builder
+
+        /**创建并开启选择*/
         fun create(): PickerFragment
     }
 
