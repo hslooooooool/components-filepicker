@@ -344,7 +344,6 @@ class PickerFragment(private val fm: FragmentManager) : Fragment() {
             val contentResolver = activity!!.contentResolver
             contentResolver.delete(it, null, null)
         }
-
     }
 
     /**申请文件读写权限*/
